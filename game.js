@@ -488,8 +488,45 @@
     e.preventDefault();
   }
 
+  /* ---- leaderboard ------------------------------------------------------- */
+  function fmtRow(r, i) {
+    var li = document.createElement("li");
+    var rank = document.createElement("span");
+    rank.className = "lb-rank";
+    rank.textContent = "#" + (i + 1);
+    var name = document.createElement("span");
+    name.className = "lb-name";
+    name.textContent = r.name;
+    var nums = document.createElement("span");
+    nums.className = "lb-nums";
+    nums.textContent = r.score + " pts · " + fmtTime(r.run_ms);
+    li.appendChild(rank); li.appendChild(name); li.appendChild(nums);
+    return li;
+  }
+
+  function loadLeaderboard() {
+    var url = CONFIG.endpoints.appsScriptUrl + "?view=leaderboard&lead_id=" +
+      encodeURIComponent(window.getLeadId ? window.getLeadId() : "");
+    return fetch(url).then(function (r) { return r.json(); }).then(function (json) {
+      if (!json || !json.ok) return;
+      var w = el("lb-winners"), o = el("lb-others");
+      w.innerHTML = ""; o.innerHTML = "";
+      json.winners.forEach(function (r, i) { w.appendChild(fmtRow(r, i)); });
+      json.others.forEach(function (r, i) { o.appendChild(fmtRow(r, i)); });
+      el("lb-no-winners").hidden = json.winners.length > 0;
+      el("lb-no-others").hidden = json.others.length > 0;
+      if (json.you) {
+        el("pg-rank").textContent = json.you.section === "winners"
+          ? "  ·  Winner #" + json.you.rank
+          : "  ·  #" + json.you.rank + " on the board";
+      }
+    }).catch(function () { /* board is nice-to-have; never block the flow */ });
+  }
+
   /* ---- post-game screen (the rep opener, design doc 5.7) ----------------- */
   function showPostGame() {
+    el("pg-rank").textContent = "";
+    loadLeaderboard();
     el("pg-score").textContent = String(bestScore);
     el("pg-tier-img").src = G.tierImagePath(sessionBestTier);
     el("pg-tier-name").textContent = G.tiers[sessionBestTier].name;
@@ -589,6 +626,11 @@
     });
     el("btn-finish").addEventListener("click", showPostGame);
     el("btn-products-save").addEventListener("click", submitProducts);
+    el("btn-show-leaderboard").addEventListener("click", function () {
+      loadLeaderboard();
+      showScreen("leaderboard");
+    });
+    el("btn-lb-back").addEventListener("click", function () { showScreen("postgame"); });
     canvas.addEventListener("pointerdown", onPointer);
     window.addEventListener("resize", function () { if (canvas.width) fitCanvas(); });
 

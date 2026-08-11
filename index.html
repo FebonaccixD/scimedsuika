@@ -157,7 +157,8 @@
   <!-- Screen 12: post-game ladder, the rep opener. -->
   <section class="screen" id="screen-postgame" hidden>
     <h1>Your result</h1>
-    <p>Best score: <strong id="pg-score"></strong></p>
+    <p>Best score: <strong id="pg-score"></strong><span id="pg-rank"></span></p>
+    <button class="btn btn-secondary" id="btn-show-leaderboard" type="button">See the leaderboard</button>
     <div class="pg-reached">
       <img id="pg-tier-img" alt="">
       <div>You reached<br><strong id="pg-tier-name"></strong></div>
@@ -170,6 +171,20 @@
     <p class="muted" id="products-done" hidden>Saved — thank you.</p>
     <div class="action-area">
       <p class="show-team">Show this screen to our team</p>
+    </div>
+  </section>
+
+  <!-- Screen 13: leaderboard, phone view. -->
+  <section class="screen" id="screen-leaderboard" hidden>
+    <h1>Leaderboard</h1>
+    <h2>Winners — fastest to the SciMed logo</h2>
+    <ol class="lb-list" id="lb-winners"></ol>
+    <p class="muted" id="lb-no-winners" hidden>No winners yet — the logo is still up for grabs.</p>
+    <h2>Best scores</h2>
+    <ol class="lb-list" id="lb-others"></ol>
+    <p class="muted" id="lb-no-others" hidden>No scored runs yet.</p>
+    <div class="action-area">
+      <button class="btn btn-secondary" id="btn-lb-back" type="button">Back to my result</button>
     </div>
   </section>
 

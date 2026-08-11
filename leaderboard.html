@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Booth screen. Open fullscreen (F11) on the 1920x1080 display.
+     Polls every 10s; the server caches for 20s so polling never
+     competes with lead writes. Visual identity comes wholesale from
+     the token block in styles.css, same as the app. -->
+<meta name="viewport" content="width=1920">
+<title>SciMed — Leaderboard</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="booth">
+  <div class="booth-header">
+    <h1>Build the SciMed logo</h1>
+    <div class="booth-sub">Scan the QR at the booth to play</div>
+  </div>
+
+  <div class="booth-section-title">Winners — fastest to the logo</div>
+  <ol class="booth-list booth-winners" id="booth-winners"></ol>
+  <div class="booth-empty" id="booth-no-winners" hidden>The logo is still up for grabs.</div>
+
+  <div class="booth-section-title">Best scores</div>
+  <ol class="booth-list booth-others" id="booth-others"></ol>
+  <div class="booth-empty" id="booth-no-others" hidden>Waiting for the first run.</div>
+
+  <div class="booth-footer">
+    <span>Two of the same merge into the next. Nine steps from test pack to logo.</span>
+    <!-- live capture count: small, for staff; a stalled number is the
+         earliest visible sign the write path is down -->
+    <span id="booth-captures"></span>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  "use strict";
+  var POLL_MS = 10000;
+  // Booth screen shows fewer rows than the API returns so it never overflows
+  // 1080p: winners are large type, the general board smaller.
+  var MAX_WINNERS = 5, MAX_OTHERS = 8;
+
+  function fmtTime(ms) {
+    var s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  }
+
+  function row(r, i) {
+    var li = document.createElement("li");
+    var rank = document.createElement("span");
+    rank.className = "lb-rank";
+    rank.textContent = "#" + (i + 1);
+    var name = document.createElement("span");
+    name.className = "lb-name";
+    name.textContent = r.name;
+    var nums = document.createElement("span");
+    nums.className = "lb-nums";
+    nums.textContent = r.score + " pts · " + fmtTime(r.run_ms);
+    li.appendChild(rank); li.appendChild(name); li.appendChild(nums);
+    return li;
+  }
+
+  function refresh() {
+    fetch(CONFIG.endpoints.appsScriptUrl + "?view=leaderboard")
+      .then(function (r) { return r.json(); })
+      .then(function (json) {
+        if (!json || !json.ok) return;
+        var w = document.getElementById("booth-winners");
+        var o = document.getElementById("booth-others");
+        w.innerHTML = ""; o.innerHTML = "";
+        json.winners.slice(0, MAX_WINNERS).forEach(function (r, i) { w.appendChild(row(r, i)); });
+        json.others.slice(0, MAX_OTHERS).forEach(function (r, i) { o.appendChild(row(r, i)); });
+        document.getElementById("booth-no-winners").hidden = json.winners.length > 0;
+        document.getElementById("booth-no-others").hidden = json.others.length > 0;
+        document.getElementById("booth-captures").textContent =
+          "Captured: " + json.captures + " · updated " + new Date().toLocaleTimeString();
+      })
+      .catch(function () { /* keep the last good board on screen */ });
+  }
+
+  refresh();
+  setInterval(refresh, POLL_MS);
+})();
+</script>
+</body>
+</html>

@@ -68,7 +68,7 @@
 
   /* ---- screens ------------------------------------------------------------ */
   var screens = ["inapp", "form", "saving", "still-saving", "confirm",
-                 "game-intro", "game", "game-end", "postgame"];
+                 "game-intro", "game", "game-end", "postgame", "leaderboard"];
   function showScreen(name) {
     screens.forEach(function (s) {
       document.getElementById("screen-" + s).hidden = (s !== name);
