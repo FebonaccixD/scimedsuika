@@ -123,6 +123,11 @@ const CONFIG = {
     // artwork swap path: /assets/tier-01.png .. /assets/tier-07.png
     tierImagePath: function (i) { return "assets/tier-0" + (i + 1) + ".png"; },
 
+    /* visual-only upscale per tier — physics radius is NOT affected.
+       Small tiers read badly on phone screens; the art has empty padding
+       around the subject, so a modest overdraw doesn't visibly overlap. */
+    artScale: [1.30, 1.20, 1.12, 1, 1, 1, 1],
+
     /* drops: tiers 1-3 only — a plate reader is built, never dropped */
     spawnWeights: [45, 35, 20],
     dropCooldownMs: 350,

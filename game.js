@@ -430,6 +430,8 @@
 
   function drawDisc(tier, x, y, r, angle) {
     var img = tierImages[tier];
+    // visual-only upscale for legibility; the physics body stays at r
+    if (G.artScale && G.artScale[tier]) r *= G.artScale[tier];
     if (img.complete && img.naturalWidth) {
       ctx.save();
       ctx.translate(x, y);

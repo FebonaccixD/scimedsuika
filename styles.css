@@ -155,6 +155,37 @@ p { margin-bottom: var(--space-3); }
   margin-bottom: 10px;
 }
 
+/* intro merge demo — the one rule, shown instead of told */
+.merge-demo {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-m);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-4) 0;
+  box-shadow: var(--shadow-1);
+}
+.merge-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+.merge-row img { width: 44px; height: 44px; }
+.merge-row img.merge-result { width: 60px; height: 60px; }
+.merge-op {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--color-text-muted);
+}
+.merge-caption {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: var(--space-1) 0 var(--space-3);
+}
+.merge-demo .merge-caption:last-child { margin-bottom: 0; }
+
 /* consent line — sits above the fields, never below */
 .consent {
   background: var(--color-surface);
