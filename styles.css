@@ -135,12 +135,24 @@ p { margin-bottom: var(--space-3); }
 .muted { color: var(--color-text-muted); font-size: var(--text-s); }
 .center { text-align: center; margin-top: var(--space-3); }
 
-/* brand logo slots — assets/logo-scimed.png */
+/* brand logo slots — assets/logo-scimed.png (capture layer),
+   assets/logo-suika.png (game layer) */
 .brand-logo {
   display: block;
   height: 40px;
   width: auto;
   margin-bottom: var(--space-4);
+}
+.suika-logo { height: 64px; }
+/* white plate keeps the green-on-green logo legible on the masthead */
+.booth-suika-logo {
+  display: block;
+  height: 96px;
+  width: auto;
+  background: var(--color-surface);
+  border-radius: 12px;
+  padding: 8px 18px;
+  margin-bottom: 10px;
 }
 
 /* consent line — sits above the fields, never below */

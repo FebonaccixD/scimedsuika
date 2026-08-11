@@ -108,27 +108,28 @@ const CONFIG = {
       density: 0.001         // constant across tiers: bigger = heavier by area
     },
 
-    /* tier ladder: radius (logical px), product, brand */
+    /* tier ladder: radius (logical px), product, brand.
+       7 tiers over the same container: ratio steepened to ~1.45 (from the
+       9-tier 1.32) so the win still takes 5-8 minutes, per the doc's logic. */
     tiers: [
-      { radius: 18,  name: "Bowie-Dick test pack", brand: "STERIS" },
-      { radius: 24,  name: "Falcon tube",          brand: "Corning" },
-      { radius: 31,  name: "Disinfectant bottle",  brand: "STERIS" },
-      { radius: 41,  name: "Cleanroom mop head",   brand: "Hydroflex" },
-      { radius: 55,  name: "Plate reader",         brand: "Tecan" },
-      { radius: 72,  name: "Fluent workstation",   brand: "Tecan" },
-      { radius: 96,  name: "Bioreactor",           brand: "Infors" },
-      { radius: 127, name: "ULT freezer",          brand: "PHCbi" },
-      { radius: 168, name: "SciMed logo",          brand: "SciMed" }
+      { radius: 18,  name: "Falcon tube",    brand: "Corning" },
+      { radius: 26,  name: "Spor-Klenz RTU", brand: "STERIS" },
+      { radius: 38,  name: "Cleanroom mop",  brand: "Hydroflex" },
+      { radius: 55,  name: "Plate reader",   brand: "Tecan" },
+      { radius: 80,  name: "Bioreactor",     brand: "Infors" },
+      { radius: 116, name: "ULT freezer",    brand: "PHCbi" },
+      { radius: 168, name: "SciMed logo",    brand: "SciMed" }
     ],
-    // artwork swap path: /assets/tier-01.png .. /assets/tier-09.png
+    // artwork swap path: /assets/tier-01.png .. /assets/tier-07.png
     tierImagePath: function (i) { return "assets/tier-0" + (i + 1) + ".png"; },
 
-    /* drops */
-    spawnWeights: [40, 30, 20, 10],  // tiers 1-4 only, never 5+
+    /* drops: tiers 1-3 only — a plate reader is built, never dropped */
+    spawnWeights: [45, 35, 20],
     dropCooldownMs: 350,
 
-    /* scoring: triangular progression per merge INTO tier (index 1..8) */
-    mergeScores: [0, 3, 6, 10, 15, 21, 28, 36, 45],
+    /* scoring: per-merge score by the tier the merge CREATES (user-set).
+       Index 0 (T1) is unreachable — nothing merges into tier 1. */
+    mergeScores: [20, 28, 39, 55, 77, 108, 151],
     // cascade bonus: merge score x chain position since last drop, capped
     cascadeCapX: 5,
 

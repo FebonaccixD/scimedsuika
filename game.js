@@ -280,11 +280,11 @@
       el("end-title").textContent = won ? "You built the whole company" : "Pile hit the line";
       el("screen-game-end").classList.toggle("won", won);
       el("end-score").textContent = String(score);
-      var t9 = G.tiers.length - 1;
+      var top = G.tiers.length - 1;
       el("end-tier").textContent = won
-        ? "Tier 9 · the SciMed logo"
+        ? "Tier " + G.tiers.length + " · the SciMed logo"
         : "Tier " + (highestTier + 1) + " · " + G.tiers[highestTier].name;
-      el("end-disc").src = G.tierImagePath(won ? t9 : highestTier);
+      el("end-disc").src = G.tierImagePath(won ? top : highestTier);
       el("end-time").textContent = fmtTime(runMs);
       isFinal = attemptsUsed >= G.maxAttempts;
       el("end-attempts").textContent = isFinal
@@ -621,7 +621,7 @@
     el("pg-score").textContent = String(bestScore);
     el("pg-tier-img").src = G.tierImagePath(sessionBestTier);
     el("pg-tier-name").textContent = everWon
-      ? "Tier 9 · the logo"
+      ? "Tier " + G.tiers.length + " · the logo"
       : "Tier " + (sessionBestTier + 1) + " · " + G.tiers[sessionBestTier].name;
     el("pg-reached-card").classList.toggle("pg-won", everWon);
     // ladder listed summit-first, reached tiers at full strength
@@ -653,7 +653,7 @@
     }
     var list = el("products-list");
     if (!list.children.length) {
-      G.tiers.slice(0, 8).forEach(function (t) {
+      G.tiers.slice(0, G.tiers.length - 1).forEach(function (t) {
         var label = document.createElement("label");
         var cb = document.createElement("input");
         cb.type = "checkbox";
