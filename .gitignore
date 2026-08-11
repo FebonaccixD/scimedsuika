@@ -2,3 +2,7 @@
 2026-*.md
 README-deploy.md
 apps-script/
+
+# art source files (2048px originals); deployed copies live in assets/
+/*.png
+/*.PNG
