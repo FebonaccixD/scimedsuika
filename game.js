@@ -134,10 +134,15 @@
       var newTier = tier + 1;
       chainSinceDrop++;
       var mult = Math.min(chainSinceDrop, G.cascadeCapX);
-      score += G.mergeScores[newTier] * mult;
-      if (newTier > highestTier) highestTier = newTier;
+      var gained = G.mergeScores[newTier] * mult;
+      score += gained;
+      if (newTier > highestTier) {
+        highestTier = newTier;
+        lastReachedTier = newTier;
+        lastReachedFlashAt = now();
+      }
 
-      spawnFeedback(nx, ny, newTier, mult);
+      spawnFeedback(nx, ny, newTier, mult, gained);
 
       if (newTier === G.tiers.length - 1) {
         // tier 9, the SciMed logo: run ends immediately on the first logo
@@ -151,8 +156,11 @@
     mergeQueue.length = 0;
   }
 
-  /* ---- feedback: two visual channels minimum (pop + burst) + name toast -- */
-  function spawnFeedback(x, y, tier, mult) {
+  /* ---- feedback: four channels, none audio (design: merge moment) --------
+     canvas pop + gold burst · toast strip fills pine with the product name ·
+     HUD score delta flash · ladder rail dot flash. */
+  var lastGain = 0, lastGainAt = 0, lastReachedFlashAt = 0, lastReachedTier = -1;
+  function spawnFeedback(x, y, tier, mult, gained) {
     pops.push({ x: x, y: y, tier: tier, at: now() });
     if (!reducedMotion) {
       for (var i = 0; i < G.particleCount; i++) {
@@ -162,8 +170,9 @@
       }
     }
     var t = G.tiers[tier];
-    toasts.push({ text: t.name + (mult > 1 ? "  x" + mult : ""), at: now() });
+    toasts.push({ text: t.name + (mult > 1 ? " ×" + mult : ""), tier: tier, at: now() });
     if (toasts.length > 3) toasts.shift();
+    lastGain = gained; lastGainAt = now();
   }
 
   /* ---- drop -------------------------------------------------------------- */
@@ -196,8 +205,10 @@
   }
 
   /* ---- loss detection ---------------------------------------------------- */
+  var graceMaxMs = 0;   // largest accumulated above-line time, drives the countdown
   function checkLoss(dtMs) {
     var bodies = M.Composite.allBodies(world);
+    graceMaxMs = 0;
     for (var i = 0; i < bodies.length; i++) {
       var b = bodies[i];
       if (b.isStatic || b.plugin.tier === undefined) continue;
@@ -205,6 +216,7 @@
       var still = M.Vector.magnitude(b.velocity) < G.stillSpeed;
       if (above && still) {
         b.plugin.aboveMs += dtMs;
+        if (b.plugin.aboveMs > graceMaxMs) graceMaxMs = b.plugin.aboveMs;
         if (b.plugin.aboveMs >= G.graceMs) { endRun(false); return; }
       } else {
         b.plugin.aboveMs = 0;
@@ -227,6 +239,15 @@
     return Math.max(0, Math.min(1, 1 - (minTop - G.container.dangerY) / range));
   }
 
+  // four-step escalation per the design: far / near / touching / critical
+  function dangerBucket() {
+    if (graceMaxMs > 0) return "critical";
+    var d = dangerProximity();
+    if (d >= 0.9) return "touching";
+    if (d >= 0.55) return "near";
+    return "far";
+  }
+
   /* ---- run lifecycle ----------------------------------------------------- */
   function startRun() {
     if (engine) { M.Events.off(engine); M.Engine.clear(engine); }
@@ -234,6 +255,7 @@
     score = 0; chainSinceDrop = 0; highestTier = 0;
     runOver = false; lastDropped = null; lastDropAt = 0;
     particles = []; pops = []; toasts = []; mergeQueue = [];
+    graceMaxMs = 0; lastGain = 0; lastReachedTier = -1;
     heldTier = pickSpawnTier(); nextTier = pickSpawnTier();
     heldX = G.container.width / 2;
     runAccumMs = 0; segStart = now(); running = true;
@@ -255,10 +277,14 @@
 
     var isFinal;
     setTimeout(function () {
-      el("end-title").textContent = won ? "You built the SciMed logo!" : "The board filled up";
+      el("end-title").textContent = won ? "You built the whole company" : "Pile hit the line";
       el("screen-game-end").classList.toggle("won", won);
       el("end-score").textContent = String(score);
-      el("end-tier").textContent = G.tiers[highestTier].name + " (" + G.tiers[highestTier].brand + ")";
+      var t9 = G.tiers.length - 1;
+      el("end-tier").textContent = won
+        ? "Tier 9 · the SciMed logo"
+        : "Tier " + (highestTier + 1) + " · " + G.tiers[highestTier].name;
+      el("end-disc").src = G.tierImagePath(won ? t9 : highestTier);
       el("end-time").textContent = fmtTime(runMs);
       isFinal = attemptsUsed >= G.maxAttempts;
       el("end-attempts").textContent = isFinal
@@ -330,12 +356,19 @@
     // container bg comes from CSS on the canvas element (colour + optional
     // assets/bg-game.png) — the canvas itself stays transparent
 
-    // danger line, escalating with proximity
-    var danger = dangerProximity();
-    var pulse = danger > 0.6 && !reducedMotion ? (Math.sin(now() / 120) + 1) / 2 : 0;
-    ctx.strokeStyle = "rgba(" + getCss("--game-danger-rgb") + "," + (0.25 + danger * 0.6 + pulse * 0.15) + ")";
-    ctx.lineWidth = 1.5 + danger * 2.5;
-    ctx.setLineDash(danger > 0.85 ? [] : [8, 6]);
+    // danger line: four steps, thickness carries the escalation, not just
+    // alpha — a sunlit screen loses alpha before it loses geometry
+    var bucket = dangerBucket();
+    var lineAlpha, lineWidth, dash;
+    if (bucket === "critical") {
+      var pulse = reducedMotion ? 0 : (Math.sin(now() / 111) + 1) / 2;   // ~700ms cycle
+      lineAlpha = 0.85 + pulse * 0.15; lineWidth = 6; dash = [];
+    } else if (bucket === "touching") { lineAlpha = 0.85; lineWidth = 4; dash = []; }
+    else if (bucket === "near")       { lineAlpha = 0.55; lineWidth = 3; dash = [8, 6]; }
+    else                              { lineAlpha = 0.35; lineWidth = 3; dash = [8, 6]; }
+    ctx.strokeStyle = "rgba(" + getCss("--game-danger-rgb") + "," + lineAlpha + ")";
+    ctx.lineWidth = lineWidth;
+    ctx.setLineDash(dash);
     ctx.beginPath();
     ctx.moveTo(0, G.container.dangerY);
     ctx.lineTo(w, G.container.dangerY);
@@ -429,11 +462,44 @@
 
   function updateHudTimer() {
     el("hud-time").textContent = fmtTime(runElapsed());
-    // toasts
-    var tEl = el("hud-toast");
-    var live = toasts.filter(function (t) { return now() - t.at < G.toastMs; });
-    tEl.textContent = live.length ? live[live.length - 1].text : "";
     el("hud-score").textContent = String(score);
+
+    // score delta flash: border, label and numeral go green for 600ms
+    var gaining = lastGain > 0 && now() - lastGainAt < 600;
+    el("hud-score-block").classList.toggle("gained", gaining);
+    el("hud-score-label").textContent = gaining ? "Score +" + lastGain : "Score";
+
+    // rail flash on a newly reached tier
+    if (lastReachedTier >= 0) {
+      var dots = document.querySelectorAll("#hud-ladder .ladder-dot");
+      var flashing = now() - lastReachedFlashAt < 600;
+      dots.forEach(function (dot, i) {
+        dot.classList.toggle("just-reached", flashing && i === lastReachedTier);
+      });
+    }
+
+    // toast strip: danger countdown takes over at critical, else merge name
+    var tEl = el("hud-toast");
+    var txt = el("toast-text");
+    var disc = el("toast-disc");
+    var bucket = dangerBucket();
+    el("game-stage").setAttribute("data-danger", bucket);
+    if (bucket === "critical" && !runOver) {
+      var left = Math.max(0, Math.ceil((G.graceMs - graceMaxMs) / 1000));
+      tEl.className = "danger-critical";
+      txt.textContent = "Clear the top — " + left + " second" + (left === 1 ? "" : "s");
+    } else {
+      var live = toasts.filter(function (t) { return now() - t.at < G.toastMs; });
+      if (live.length) {
+        var last = live[live.length - 1];
+        tEl.className = "merged";
+        disc.src = G.tierImagePath(last.tier);
+        txt.textContent = last.text;
+      } else {
+        tEl.className = "";
+        txt.textContent = "Tap the top to drop";
+      }
+    }
   }
 
   /* ---- main loop --------------------------------------------------------- */
@@ -487,19 +553,39 @@
     e.preventDefault();
   }
 
-  /* ---- leaderboard ------------------------------------------------------- */
-  function fmtRow(r, i) {
+  /* ---- leaderboard --------------------------------------------------------
+     Winners lead on time (the ranked value, in gold); the board leads on
+     score in a quiet ledger. data-rank + .is-you drive the styling. */
+  function fmtRow(r, i, isWinner, you) {
     var li = document.createElement("li");
+    li.setAttribute("data-rank", String(i + 1));
+    if (you && you.rank === i + 1 &&
+        ((isWinner && you.section === "winners") || (!isWinner && you.section === "board"))) {
+      li.classList.add("is-you");
+    }
     var rank = document.createElement("span");
     rank.className = "lb-rank";
-    rank.textContent = "#" + (i + 1);
+    rank.textContent = isWinner ? String(i + 1) : String(i + 1);
     var name = document.createElement("span");
     name.className = "lb-name";
     name.textContent = r.name;
-    var nums = document.createElement("span");
-    nums.className = "lb-nums";
-    nums.textContent = r.score + " pts · " + fmtTime(r.run_ms);
-    li.appendChild(rank); li.appendChild(name); li.appendChild(nums);
+    li.appendChild(rank);
+    li.appendChild(name);
+    if (isWinner) {
+      var time = document.createElement("span");
+      time.className = "lb-time";
+      time.textContent = fmtTime(r.run_ms);
+      var sc = document.createElement("span");
+      sc.className = "lb-score";
+      sc.textContent = r.score + " pts";
+      li.appendChild(time);
+      li.appendChild(sc);
+    } else {
+      var nums = document.createElement("span");
+      nums.className = "lb-nums-group";
+      nums.textContent = r.score + " · " + fmtTime(r.run_ms);
+      li.appendChild(nums);
+    }
     return li;
   }
 
@@ -510,14 +596,20 @@
       if (!json || !json.ok) return;
       var w = el("lb-winners"), o = el("lb-others");
       w.innerHTML = ""; o.innerHTML = "";
-      json.winners.forEach(function (r, i) { w.appendChild(fmtRow(r, i)); });
-      json.others.forEach(function (r, i) { o.appendChild(fmtRow(r, i)); });
+      json.winners.forEach(function (r, i) { w.appendChild(fmtRow(r, i, true, json.you)); });
+      json.others.forEach(function (r, i) { o.appendChild(fmtRow(r, i, false, json.you)); });
       el("lb-no-winners").hidden = json.winners.length > 0;
       el("lb-no-others").hidden = json.others.length > 0;
+      var youLine = el("lb-you-line");
       if (json.you) {
-        el("pg-rank").textContent = json.you.section === "winners"
-          ? "  ·  Winner #" + json.you.rank
-          : "  ·  #" + json.you.rank + " on the board";
+        var label = json.you.section === "winners"
+          ? "Winner #" + json.you.rank
+          : "#" + json.you.rank + " on the board";
+        el("pg-rank").textContent = "  ·  " + label;
+        youLine.innerHTML = "You're <strong>" + label + "</strong> · " + bestScore + " pts";
+        youLine.hidden = false;
+      } else {
+        youLine.hidden = true;
       }
     }).catch(function () { /* board is nice-to-have; never block the flow */ });
   }
@@ -528,21 +620,37 @@
     loadLeaderboard();
     el("pg-score").textContent = String(bestScore);
     el("pg-tier-img").src = G.tierImagePath(sessionBestTier);
-    el("pg-tier-name").textContent = G.tiers[sessionBestTier].name;
+    el("pg-tier-name").textContent = everWon
+      ? "Tier 9 · the logo"
+      : "Tier " + (sessionBestTier + 1) + " · " + G.tiers[sessionBestTier].name;
+    el("pg-reached-card").classList.toggle("pg-won", everWon);
+    // ladder listed summit-first, reached tiers at full strength
     var ladder = el("pg-ladder");
     ladder.innerHTML = "";
-    G.tiers.forEach(function (t, i) {
+    for (var i = G.tiers.length - 1; i >= 0; i--) {
+      var t = G.tiers[i];
       var li = document.createElement("li");
       li.className = i <= sessionBestTier ? "reached" : "";
       var img = document.createElement("img");
       img.src = G.tierImagePath(i);
       img.alt = "";
-      var span = document.createElement("span");
-      span.textContent = t.name + " — " + t.brand;
+      var item = document.createElement("span");
+      item.className = "pg-item";
+      item.textContent = t.name + " ";
+      if (i < G.tiers.length - 1) {
+        var brand = document.createElement("span");
+        brand.className = "pg-brand";
+        brand.textContent = t.brand;
+        item.appendChild(brand);
+      }
+      var num = document.createElement("span");
+      num.className = "pg-num";
+      num.textContent = String(i + 1);
       li.appendChild(img);
-      li.appendChild(span);
+      li.appendChild(item);
+      li.appendChild(num);
       ladder.appendChild(li);
-    });
+    }
     var list = el("products-list");
     if (!list.children.length) {
       G.tiers.slice(0, 8).forEach(function (t) {

@@ -6,6 +6,8 @@
 <title>SciMed at the booth</title>
 <link rel="icon" type="image/png" href="assets/app-icon.png">
 <link rel="apple-touch-icon" href="assets/app-icon.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,16 +16,19 @@
   <!-- Screen 16: in-app browser interstitial. Shown first when a webview UA
        is detected; gates the flow but never hard-blocks it. -->
   <section class="screen" id="screen-inapp" hidden>
-    <h1>Open this page in your browser</h1>
-    <p>This page was opened inside another app. It works best in your phone's own browser, and that also keeps your entry safe if the connection drops.</p>
+    <img class="brand-logo" src="assets/logo-scimed.png" alt="SciMed">
+    <h1>Open this in your browser</h1>
+    <p>You're inside an app's built-in browser. It can drop your details before they reach us.</p>
     <div class="interstitial-steps">
       <ol>
-        <li>Tap the <strong>&#8942;</strong> or <strong>share</strong> icon in the corner of this screen</li>
-        <li>Choose <strong>"Open in browser"</strong></li>
+        <li>Tap the <strong>&#8942;</strong> menu, top right of this window</li>
+        <li>Choose <strong>Open in browser</strong></li>
+        <li>Come back to this page there</li>
       </ol>
     </div>
     <div class="action-area">
       <button class="btn btn-secondary" id="btn-continue-anyway" type="button">Continue here anyway</button>
+      <p class="muted center">Your details may not save on some apps.</p>
     </div>
   </section>
 
@@ -32,7 +37,7 @@
        browser submit behaviour can fire. -->
   <section class="screen" id="screen-form" hidden>
     <img class="brand-logo" src="assets/logo-scimed.png" alt="SciMed">
-    <h1>Hello — let's get you on the board</h1>
+    <h1>Hello from the SciMed booth</h1>
 
     <div class="consent" id="consent-line">
       <!-- PLACEHOLDER — final PDPA wording pending compliance review.
@@ -47,19 +52,19 @@
 
     <div class="field" data-field="name">
       <label for="in-name">Name</label>
-      <input id="in-name" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next">
+      <input id="in-name" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next" placeholder=" ">
       <div class="field-error">Enter your name</div>
     </div>
 
     <div class="field" data-field="company">
       <label for="in-company">Company</label>
-      <input id="in-company" type="text" autocomplete="organization" enterkeyhint="next">
+      <input id="in-company" type="text" autocomplete="organization" enterkeyhint="next" placeholder=" ">
       <div class="field-error">Enter your company</div>
     </div>
 
     <div class="field" data-field="email">
       <label for="in-email">Work email</label>
-      <input id="in-email" type="email" autocomplete="email" autocapitalize="none" inputmode="email" enterkeyhint="next">
+      <input id="in-email" type="email" autocomplete="email" autocapitalize="none" inputmode="email" enterkeyhint="next" placeholder=" ">
       <div class="field-error">Enter a valid email address</div>
     </div>
 
@@ -73,13 +78,13 @@
     </div>
 
     <div class="field" data-field="position">
-      <label for="in-position">Position <span class="optional">(optional)</span></label>
-      <input id="in-position" type="text" autocomplete="organization-title" enterkeyhint="next">
+      <label for="in-position">Position <span class="optional">optional</span></label>
+      <input id="in-position" type="text" autocomplete="organization-title" enterkeyhint="next" placeholder=" ">
     </div>
 
     <div class="field" data-field="phone">
-      <label for="in-phone">Phone <span class="optional">(optional)</span></label>
-      <input id="in-phone" type="tel" autocomplete="tel" inputmode="tel" enterkeyhint="done">
+      <label for="in-phone">Phone <span class="optional">optional</span></label>
+      <input id="in-phone" type="tel" autocomplete="tel" inputmode="tel" enterkeyhint="done" placeholder=" ">
     </div>
 
     <div class="action-area">
@@ -92,7 +97,8 @@
     <div class="center-stack">
       <div class="spinner" aria-hidden="true"></div>
       <h2>Saving your details</h2>
-      <p class="muted">This takes a moment.</p>
+      <p class="muted">A couple of seconds.</p>
+      <div class="progress-track" aria-hidden="true"><div class="progress-fill"></div></div>
     </div>
   </section>
 
@@ -102,54 +108,70 @@
     <div class="center-stack">
       <div class="spinner" aria-hidden="true"></div>
       <h2>Still saving — keep this page open</h2>
-      <p class="muted">The connection is slow. Your details are held on this phone and we keep trying until they're through.</p>
+      <p class="muted">The hall wifi is busy. We keep retrying; nothing is lost while this page stays open.</p>
+      <div class="progress-track" aria-hidden="true"><div class="progress-fill"></div></div>
+      <p class="muted" id="still-attempt"></p>
     </div>
   </section>
 
   <!-- Screen 5: confirmation. Email echoed back for typo catching.
        Shown only after the server confirmed the write. -->
   <section class="screen" id="screen-confirm" hidden>
+    <div class="success-dot" aria-hidden="true"></div>
     <h1>You're in</h1>
-    <p>Your details are saved — you're all set. We have your email as:</p>
-    <div class="email-echo" id="confirm-email"></div>
-    <p class="muted">If that email is wrong, edit your details and resubmit — your entry updates, no duplicate is created. Otherwise you're done and can close this page.</p>
+    <p>We've got your details. A specialist will be in touch after the show.</p>
+    <div class="email-echo">
+      <span class="echo-label">We'll write to</span>
+      <span class="echo-value" id="confirm-email"></span>
+    </div>
+    <p class="muted">Wrong address? Edit it now — after this we can't reach you to check. Your entry updates, no duplicate is created.</p>
     <!-- game offer: primary action, clearly skippable -->
     <div class="action-area">
       <button class="btn btn-primary" id="btn-play" type="button">Play the game</button>
       <button class="btn btn-secondary" id="btn-fix-typo" type="button">Edit my details</button>
-      <p class="muted center">Or just close this page — you're done.</p>
+      <p class="muted center">or close this page — you're done.</p>
     </div>
   </section>
 
   <!-- Screen 6: game intro. Rules in one line, nobody reads more. -->
   <section class="screen" id="screen-game-intro" hidden>
-    <h1>Merge to the top</h1>
-    <p>Drop items. Two of the same merge into the next one up. Build the SciMed logo to win.</p>
-    <p class="muted">Tap anywhere in the play area to drop at that spot. Watch the line at the top — pile past it and the run ends.</p>
+    <h1>Merge your way to the logo</h1>
+    <p><strong>Two of the same thing touch, they become the next thing up.</strong></p>
+    <p class="muted">Tap anywhere across the top to drop. Keep the pile below the line.</p>
+    <p class="muted">Nine tiers. The ninth is the SciMed logo — fastest to it wins the show.</p>
     <div class="action-area">
       <button class="btn btn-primary" id="btn-start-run" type="button">Drop the first one</button>
+      <p class="muted center">Three attempts. Your best one counts.</p>
     </div>
   </section>
 
   <!-- Screen 7: play. Canvas + HUD overlay + live tier ladder at the edge. -->
   <section class="screen screen-game" id="screen-game" hidden>
     <div class="hud-top">
-      <div class="hud-block"><span class="hud-label">Score</span><span id="hud-score">0</span></div>
-      <div class="hud-block"><span class="hud-label">Time</span><span id="hud-time">0:00</span></div>
+      <div class="hud-block" id="hud-score-block"><span class="hud-label" id="hud-score-label">Score</span><span class="hud-value" id="hud-score">0</span></div>
+      <div class="hud-block"><span class="hud-label">Time</span><span class="hud-value" id="hud-time">0:00</span></div>
       <div class="hud-block hud-next"><span class="hud-label">Next</span><img id="hud-next-img" alt="next item"></div>
     </div>
-    <div id="hud-toast" aria-live="polite"></div>
+    <div id="hud-toast" aria-live="polite"><img class="toast-disc" id="toast-disc" alt=""><span id="toast-text">Tap the top to drop</span></div>
     <div id="game-stage">
       <canvas id="game-canvas"></canvas>
       <div id="hud-ladder" aria-hidden="true"></div>
     </div>
   </section>
 
-  <!-- Screens 10+11: game over / win. -->
+  <!-- Screens 10+11: game over / win. One screen; .won changes everything. -->
   <section class="screen" id="screen-game-end" hidden>
     <h1 id="end-title"></h1>
-    <p>Score: <strong id="end-score"></strong> &nbsp;·&nbsp; Time: <strong id="end-time"></strong></p>
-    <p>You reached: <strong id="end-tier"></strong></p>
+    <div class="end-card">
+      <div class="end-reached">
+        <img id="end-disc" alt="">
+        <div><span class="muted">You reached</span><br><strong id="end-tier" style="font-family: var(--font-display); font-size: var(--text-l);"></strong></div>
+      </div>
+      <div class="end-stats">
+        <div class="end-stat"><span class="hud-label">Score</span><span class="stat-value" id="end-score"></span></div>
+        <div class="end-stat"><span class="hud-label">Time</span><span class="stat-value" id="end-time"></span></div>
+      </div>
+    </div>
     <p class="muted" id="end-attempts"></p>
     <div class="action-area">
       <button class="btn btn-primary" id="btn-play-again" type="button">Play again</button>
@@ -162,30 +184,47 @@
     <img class="brand-logo" src="assets/logo-scimed.png" alt="SciMed">
     <h1>Your result</h1>
     <p>Best score: <strong id="pg-score"></strong><span id="pg-rank"></span></p>
-    <button class="btn btn-secondary" id="btn-show-leaderboard" type="button">See the leaderboard</button>
-    <div class="pg-reached">
+    <button class="btn btn-primary" id="btn-show-leaderboard" type="button" style="margin-bottom: var(--space-4);">See the leaderboard</button>
+    <div class="pg-reached" id="pg-reached-card">
       <img id="pg-tier-img" alt="">
-      <div>You reached<br><strong id="pg-tier-name"></strong></div>
+      <div>You reached<br><strong id="pg-tier-name" style="font-family: var(--font-display); font-size: var(--text-l);"></strong></div>
     </div>
-    <h2>The ladder</h2>
+    <h2>The ladder you climbed</h2>
     <ol id="pg-ladder"></ol>
-    <h2>Which of these do you currently use?</h2>
+    <h2>Which of these do you use?</h2>
     <div id="products-list"></div>
     <button class="btn btn-secondary" id="btn-products-save" type="button">Save my answer</button>
     <p class="muted" id="products-done" hidden>Saved — thank you.</p>
     <div class="action-area">
-      <p class="show-team">Show this screen to our team</p>
+      <div class="show-team">
+        <img class="tier-disc" data-tier="9" id="show-team-disc" src="assets/tier-09.png" alt="">
+        <div>
+          <span class="show-team-kicker">Show this screen to our team</span>
+          Winners get the prize at the counter. Bring your rank.
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- Screen 13: leaderboard, phone view. -->
   <section class="screen" id="screen-leaderboard" hidden>
     <h1>Leaderboard</h1>
-    <h2>Winners — fastest to the SciMed logo</h2>
-    <ol class="lb-list" id="lb-winners"></ol>
+    <p class="muted" id="lb-you-line" hidden></p>
+    <div class="lb-section-head">
+      <span class="tier-disc" data-tier="9"></span>
+      <h2>Reached the logo</h2>
+      <span class="muted">by time</span>
+      <span class="lb-rule"></span>
+    </div>
+    <ol class="lb-list lb-winners" id="lb-winners"></ol>
     <p class="muted" id="lb-no-winners" hidden>No winners yet — the logo is still up for grabs.</p>
-    <h2>Best scores</h2>
-    <ol class="lb-list" id="lb-others"></ol>
+    <div class="lb-section-head board-head">
+      <span class="tier-disc" data-tier="6"></span>
+      <h2>On the board</h2>
+      <span class="muted">by score</span>
+      <span class="lb-rule"></span>
+    </div>
+    <ol class="lb-list lb-others" id="lb-others"></ol>
     <p class="muted" id="lb-no-others" hidden>No scored runs yet.</p>
     <div class="action-area">
       <button class="btn btn-secondary" id="btn-lb-back" type="button">Back to my result</button>

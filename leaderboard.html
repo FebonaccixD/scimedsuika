@@ -2,37 +2,72 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<!-- Booth screen. Open fullscreen (F11) on the 1920x1080 display.
-     Polls every 10s; the server caches for 20s so polling never
-     competes with lead writes. Visual identity comes wholesale from
-     the token block in styles.css, same as the app. -->
+<!-- Booth screen — "the booth's billboard". Open fullscreen (F11) on the
+     1920x1080 display. Polls every 10s; the server caches for 20s so
+     polling never competes with lead writes. Visual identity comes
+     wholesale from the token block in styles.css, same as the app. -->
 <meta name="viewport" content="width=1920">
 <title>SciMed — Leaderboard</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="booth">
-  <div class="booth-header">
-    <div class="booth-title">
-      <img class="brand-logo booth-logo" src="assets/logo-scimed.png" alt="SciMed">
-      <h1>Build the SciMed logo</h1>
+
+  <div class="booth-masthead">
+    <div>
+      <h1>Race to the SciMed logo</h1>
+      <div class="booth-hook">Merge lab consumables up to capital equipment. Fastest to the logo wins.</div>
     </div>
-    <div class="booth-sub">Scan the QR at the booth to play</div>
+    <div class="booth-scan">
+      <div>
+        <div class="booth-scan-label">Scan to play</div>
+        <div class="booth-scan-url">febonaccixd.github.io/scimedsuika</div>
+      </div>
+      <img src="assets/qr-code.png" alt="QR code to play">
+    </div>
   </div>
 
-  <div class="booth-section-title">Winners — fastest to the logo</div>
-  <ol class="booth-list booth-winners" id="booth-winners"></ol>
-  <div class="booth-empty" id="booth-no-winners" hidden>The logo is still up for grabs.</div>
+  <div class="booth-body">
 
-  <div class="booth-section-title">Best scores</div>
-  <ol class="booth-list booth-others" id="booth-others"></ol>
-  <div class="booth-empty" id="booth-no-others" hidden>Waiting for the first run.</div>
+    <div>
+      <div class="booth-section-head">
+        <span class="tier-disc" data-tier="9"></span>
+        <span class="booth-section-title" id="booth-winners-title">Reached the logo</span>
+        <span class="booth-section-sub">ranked by time</span>
+        <span class="booth-rule"></span>
+      </div>
+      <ol class="booth-winners" id="booth-winners"></ol>
+      <div class="booth-empty-winners" id="booth-no-winners" hidden>
+        <span class="tier-disc" data-tier="9"><img src="assets/tier-09.png" alt=""></span>
+        <div>
+          <div class="booth-empty-title">The logo is still up for grabs.</div>
+          <div class="booth-empty-sub">Nobody has merged their way to tier 9 yet. Scan, play, be the first name on this screen.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
+      <div class="booth-section-head board-head">
+        <span class="board-dot"></span>
+        <span class="booth-section-title">On the board</span>
+        <span class="booth-section-sub">ranked by score</span>
+        <span class="booth-rule"></span>
+      </div>
+      <ol class="booth-others" id="booth-others"></ol>
+      <div class="booth-empty-others" id="booth-no-others" hidden>
+        <div class="booth-empty-title">Waiting for the first run.</div>
+        <div class="booth-empty-sub">Every scored attempt lands here, best score first.</div>
+      </div>
+    </div>
+  </div>
 
   <div class="booth-footer">
-    <span>Two of the same merge into the next. Nine steps from test pack to logo.</span>
-    <!-- live capture count: small, for staff; a stalled number is the
-         earliest visible sign the write path is down -->
-    <span id="booth-captures"></span>
+    <!-- live capture count: staff canary — a stalled number is the earliest
+         visible sign the write path is down -->
+    <span id="booth-captures">&nbsp;</span>
+    <span>SciMed · A Member of PHC Group</span>
   </div>
 </div>
 
@@ -41,28 +76,70 @@
 (function () {
   "use strict";
   var POLL_MS = 10000;
-  // Booth screen shows fewer rows than the API returns so it never overflows
-  // 1080p: winners are large type, the general board smaller.
+  var NEW_WINNER_MS = 3000;
+  // Booth caps: winners are large type (top 3 full size, 4-5 half height),
+  // the general board fits two quiet columns.
   var MAX_WINNERS = 5, MAX_OTHERS = 8;
+
+  var prevWinners = null;   // name-keyed sets from the previous poll, for diffing
 
   function fmtTime(ms) {
     var s = Math.floor(ms / 1000);
     return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
   }
 
-  function row(r, i) {
+  function winnerRow(r, i) {
     var li = document.createElement("li");
+    li.setAttribute("data-rank", String(i + 1));
     var rank = document.createElement("span");
     rank.className = "lb-rank";
-    rank.textContent = "#" + (i + 1);
+    rank.textContent = String(i + 1);
+    var name = document.createElement("span");
+    name.className = "lb-name";
+    name.textContent = r.name;
+    var time = document.createElement("span");
+    time.className = "lb-time";
+    time.textContent = fmtTime(r.run_ms);
+    var score = document.createElement("span");
+    score.className = "lb-score";
+    score.textContent = r.score + " pts";
+    li.appendChild(rank); li.appendChild(name); li.appendChild(time); li.appendChild(score);
+    return li;
+  }
+
+  function boardRow(r, i) {
+    var li = document.createElement("li");
+    li.setAttribute("data-rank", String(i + 1));
+    var rank = document.createElement("span");
+    rank.className = "lb-rank";
+    rank.textContent = String(i + 1);
     var name = document.createElement("span");
     name.className = "lb-name";
     name.textContent = r.name;
     var nums = document.createElement("span");
-    nums.className = "lb-nums";
-    nums.textContent = r.score + " pts · " + fmtTime(r.run_ms);
+    nums.className = "lb-nums-group";
+    nums.textContent = r.score + " · " + fmtTime(r.run_ms);
     li.appendChild(rank); li.appendChild(name); li.appendChild(nums);
     return li;
+  }
+
+  /* New-winner moment: three seconds, once per poll, no layout shift.
+     Rows are keyed by masked name (the payload carries no ids by design);
+     an overtake gets the edge only — a rank change must never look like
+     a win. First poll of the day sets the baseline silently. */
+  function markChanges(list, rows) {
+    if (prevWinners === null) return null;
+    var newWinner = false;
+    rows.forEach(function (li, i) {
+      var name = li.querySelector(".lb-name").textContent;
+      if (!(name in prevWinners)) {
+        li.classList.add("is-new");
+        newWinner = true;
+      } else if (prevWinners[name] > i + 1) {
+        li.classList.add("moved-up");
+      }
+    });
+    return newWinner;
   }
 
   function refresh() {
@@ -73,12 +150,28 @@
         var w = document.getElementById("booth-winners");
         var o = document.getElementById("booth-others");
         w.innerHTML = ""; o.innerHTML = "";
-        json.winners.slice(0, MAX_WINNERS).forEach(function (r, i) { w.appendChild(row(r, i)); });
-        json.others.slice(0, MAX_OTHERS).forEach(function (r, i) { o.appendChild(row(r, i)); });
+        var winners = json.winners.slice(0, MAX_WINNERS);
+        var rows = winners.map(winnerRow);
+        rows.forEach(function (li) { w.appendChild(li); });
+        json.others.slice(0, MAX_OTHERS).forEach(function (r, i) { o.appendChild(boardRow(r, i)); });
         document.getElementById("booth-no-winners").hidden = json.winners.length > 0;
         document.getElementById("booth-no-others").hidden = json.others.length > 0;
         document.getElementById("booth-captures").textContent =
-          "Captured: " + json.captures + " · updated " + new Date().toLocaleTimeString();
+          json.captures + " players today · updated " + new Date().toLocaleTimeString();
+
+        var hadNew = markChanges(w, rows);
+        var title = document.getElementById("booth-winners-title");
+        if (hadNew) {
+          title.textContent = "New winner";
+          title.classList.add("new-winner");
+          setTimeout(function () {
+            title.textContent = "Reached the logo";
+            title.classList.remove("new-winner");
+            rows.forEach(function (li) { li.classList.remove("is-new", "moved-up"); });
+          }, NEW_WINNER_MS);
+        }
+        prevWinners = {};
+        json.winners.forEach(function (r, i) { prevWinners[r.name] = i + 1; });
       })
       .catch(function () { /* keep the last good board on screen */ });
   }
