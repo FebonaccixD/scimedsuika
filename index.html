@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SciMed at the booth</title>
+<link rel="icon" type="image/png" href="assets/app-icon.png">
+<link rel="apple-touch-icon" href="assets/app-icon.png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -29,6 +31,7 @@
        Deliberately not a <form> element — submit is JS only, no native
        browser submit behaviour can fire. -->
   <section class="screen" id="screen-form" hidden>
+    <img class="brand-logo" src="assets/logo-scimed.png" alt="SciMed">
     <h1>Hello — let's get you on the board</h1>
 
     <div class="consent" id="consent-line">
@@ -156,6 +159,7 @@
 
   <!-- Screen 12: post-game ladder, the rep opener. -->
   <section class="screen" id="screen-postgame" hidden>
+    <img class="brand-logo" src="assets/logo-scimed.png" alt="SciMed">
     <h1>Your result</h1>
     <p>Best score: <strong id="pg-score"></strong><span id="pg-rank"></span></p>
     <button class="btn btn-secondary" id="btn-show-leaderboard" type="button">See the leaderboard</button>

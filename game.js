@@ -327,9 +327,8 @@
     ctx.setTransform(dpr * canvasScale, 0, 0, dpr * canvasScale, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
-    // container bg
-    ctx.fillStyle = getCss("--color-surface");
-    ctx.fillRect(0, 0, w, h);
+    // container bg comes from CSS on the canvas element (colour + optional
+    // assets/bg-game.png) — the canvas itself stays transparent
 
     // danger line, escalating with proximity
     var danger = dangerProximity();
