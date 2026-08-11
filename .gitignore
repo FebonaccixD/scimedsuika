@@ -1,0 +1,4 @@
+# internal docs and backend source — not for the public repo
+2026-*.md
+README-deploy.md
+apps-script/

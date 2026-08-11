@@ -1,0 +1,235 @@
+/* =============================================================================
+   DESIGN TOKEN BLOCK
+   Every colour, radius, shadow, spacing and type value in the app resolves
+   to a custom property defined here. All values are neutral placeholders.
+   Claude Design replaces this block wholesale — nothing below it should
+   need to change when the visual system lands.
+============================================================================= */
+:root {
+  /* colour */
+  --color-bg:            #f2f2f2;
+  --color-surface:       #ffffff;
+  --color-text:          #1a1a1a;
+  --color-text-muted:    #595959;
+  --color-primary:       #3a3a3a;
+  --color-on-primary:    #ffffff;
+  --color-border:        #b3b3b3;
+  --color-border-strong: #808080;
+  --color-error:         #4d4d4d;   /* placeholder — will become a real error colour */
+  --color-error-bg:      #e6e6e6;
+  --color-focus:         #1a1a1a;
+  --color-success:       #4d4d4d;   /* placeholder */
+  --color-spinner-track: #d9d9d9;
+  --color-spinner-head:  #4d4d4d;
+
+  /* type — system stack placeholder, roles ready for a real pairing */
+  --font-body:    system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --text-xs:   0.8125rem;
+  --text-s:    0.9375rem;
+  --text-m:    1.0625rem;
+  --text-l:    1.375rem;
+  --text-xl:   1.75rem;
+  --leading-body: 1.5;
+  --leading-tight: 1.2;
+
+  /* shape */
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 16px;
+
+  /* elevation */
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  /* spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* layout */
+  --width-content: 420px;
+  --tap-min: 44px;           /* hard floor for every interactive target */
+}
+/* ========================= end design token block ========================= */
+
+
+/* base */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: var(--leading-body);
+  min-height: 100%;
+}
+
+.app {
+  max-width: var(--width-content);
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5) var(--space-4);
+}
+
+.screen { display: flex; flex-direction: column; flex: 1; }
+.screen[hidden] { display: none; }
+
+h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-4);
+}
+h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-l);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-3);
+}
+p { margin-bottom: var(--space-3); }
+.muted { color: var(--color-text-muted); font-size: var(--text-s); }
+
+/* consent line — sits above the fields, never below */
+.consent {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-m);
+  padding: var(--space-4);
+  font-size: var(--text-s);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+}
+
+/* fields — deliberately not a <form>; submit is wired in JS only */
+.field { margin-bottom: var(--space-4); }
+
+.field label {
+  display: block;
+  font-size: var(--text-s);
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+.field label .optional {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-m);
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-s);
+}
+.field input:focus,
+.field select:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+.field.invalid input,
+.field.invalid select {
+  border-color: var(--color-error);
+  background: var(--color-error-bg);
+}
+.field .field-error {
+  display: none;
+  font-size: var(--text-xs);
+  color: var(--color-error);
+  margin-top: var(--space-1);
+}
+.field.invalid .field-error { display: block; }
+
+/* primary action pinned to the bottom third, thumb reach */
+.action-area {
+  margin-top: auto;
+  padding-top: var(--space-5);
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-m);
+  font-weight: 600;
+  font-family: var(--font-body);
+  border-radius: var(--radius-m);
+  border: none;
+  cursor: pointer;
+}
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-1);
+}
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  margin-top: var(--space-3);
+}
+.btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+/* saving states */
+.center-stack {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-4);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 4px solid var(--color-spinner-track);
+  border-top-color: var(--color-spinner-head);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; border-top-color: var(--color-spinner-track); }
+  .spinner::after { content: "…"; display: block; text-align: center; line-height: 40px; }
+}
+
+/* confirmation */
+.email-echo {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-m);
+  padding: var(--space-4);
+  font-size: var(--text-l);
+  font-weight: 600;
+  text-align: center;
+  word-break: break-all;
+  margin: var(--space-4) 0;
+}
+
+/* in-app browser interstitial */
+.interstitial-steps {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-m);
+  padding: var(--space-4);
+  margin: var(--space-4) 0;
+}
+.interstitial-steps li { margin-left: var(--space-5); margin-bottom: var(--space-2); }

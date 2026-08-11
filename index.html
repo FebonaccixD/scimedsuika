@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SciMed at the booth</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- Screen 16: in-app browser interstitial. Shown first when a webview UA
+       is detected; gates the flow but never hard-blocks it. -->
+  <section class="screen" id="screen-inapp" hidden>
+    <h1>Open this page in your browser</h1>
+    <p>This page was opened inside another app. It works best in your phone's own browser, and that also keeps your entry safe if the connection drops.</p>
+    <div class="interstitial-steps">
+      <ol>
+        <li>Tap the <strong>&#8942;</strong> or <strong>share</strong> icon in the corner of this screen</li>
+        <li>Choose <strong>"Open in browser"</strong></li>
+      </ol>
+    </div>
+    <div class="action-area">
+      <button class="btn btn-secondary" id="btn-continue-anyway" type="button">Continue here anyway</button>
+    </div>
+  </section>
+
+  <!-- Screens 1+2: landing, consent above the fields, then the form.
+       Deliberately not a <form> element — submit is JS only, no native
+       browser submit behaviour can fire. -->
+  <section class="screen" id="screen-form" hidden>
+    <h1>Hello — let's get you on the board</h1>
+
+    <div class="consent" id="consent-line">
+      <!-- PLACEHOLDER — final PDPA wording pending compliance review.
+           Must state: purpose of collection, that scores and a masked name
+           may be displayed publicly on the booth leaderboard, and who to
+           contact for deletion. consentVersion in config.js tracks this text. -->
+      We use these details to follow up on your product interests after the event.
+      If you play the game, your score and a masked name (first initial and company)
+      may appear on the booth leaderboard. To have your details removed, contact
+      SciMed (Asia) Pte Ltd. <span class="muted">[Placeholder wording]</span>
+    </div>
+
+    <div class="field" data-field="name">
+      <label for="in-name">Name</label>
+      <input id="in-name" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next">
+      <div class="field-error">Enter your name</div>
+    </div>
+
+    <div class="field" data-field="company">
+      <label for="in-company">Company</label>
+      <input id="in-company" type="text" autocomplete="organization" enterkeyhint="next">
+      <div class="field-error">Enter your company</div>
+    </div>
+
+    <div class="field" data-field="email">
+      <label for="in-email">Work email</label>
+      <input id="in-email" type="email" autocomplete="email" autocapitalize="none" inputmode="email" enterkeyhint="next">
+      <div class="field-error">Enter a valid email address</div>
+    </div>
+
+    <div class="field" data-field="product_interest">
+      <label for="in-product">Product of interest</label>
+      <select id="in-product">
+        <option value="" selected>Choose one</option>
+        <!-- options filled from CONFIG.productInterestOptions -->
+      </select>
+      <div class="field-error">Choose a product area</div>
+    </div>
+
+    <div class="field" data-field="position">
+      <label for="in-position">Position <span class="optional">(optional)</span></label>
+      <input id="in-position" type="text" autocomplete="organization-title" enterkeyhint="next">
+    </div>
+
+    <div class="field" data-field="phone">
+      <label for="in-phone">Phone <span class="optional">(optional)</span></label>
+      <input id="in-phone" type="tel" autocomplete="tel" inputmode="tel" enterkeyhint="done">
+    </div>
+
+    <div class="action-area">
+      <button class="btn btn-primary" id="btn-submit" type="button">Submit my details</button>
+    </div>
+  </section>
+
+  <!-- Screen 3: saving. Blocks until a confirmed write. No optimistic tick. -->
+  <section class="screen" id="screen-saving" hidden>
+    <div class="center-stack">
+      <div class="spinner" aria-hidden="true"></div>
+      <h2>Saving your details</h2>
+      <p class="muted">This takes a moment.</p>
+    </div>
+  </section>
+
+  <!-- Screen 4: still saving. Appears after CONFIG.submit.stillSavingAfterMs;
+       retries continue behind it indefinitely. -->
+  <section class="screen" id="screen-still-saving" hidden>
+    <div class="center-stack">
+      <div class="spinner" aria-hidden="true"></div>
+      <h2>Still saving — keep this page open</h2>
+      <p class="muted">The connection is slow. Your details are held on this phone and we keep trying until they're through.</p>
+    </div>
+  </section>
+
+  <!-- Screen 5: confirmation. Email echoed back for typo catching.
+       Shown only after the server confirmed the write. -->
+  <section class="screen" id="screen-confirm" hidden>
+    <h1>You're in</h1>
+    <p>We saved your details. We have your email as:</p>
+    <div class="email-echo" id="confirm-email"></div>
+    <p class="muted">Spot a typo? Fix it and your entry updates — no duplicate is created.</p>
+    <!-- phase 2: the game offer mounts here, clearly skippable -->
+    <div class="action-area">
+      <button class="btn btn-secondary" id="btn-fix-typo" type="button">Fix a typo</button>
+    </div>
+  </section>
+
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
