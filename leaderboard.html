@@ -23,7 +23,6 @@
     <div class="booth-scan">
       <div>
         <div class="booth-scan-label">Scan to play</div>
-        <div class="booth-scan-url">febonaccixd.github.io/scimedsuika</div>
       </div>
       <img src="assets/qr-code.png" alt="QR code to play">
     </div>
@@ -34,7 +33,7 @@
     <div>
       <div class="booth-section-head">
         <span class="tier-disc" data-tier="9"></span>
-        <span class="booth-section-title" id="booth-winners-title">Reached the logo</span>
+        <span class="booth-section-title" id="booth-winners-title">Winners</span>
         <span class="booth-section-sub">ranked by time</span>
         <span class="booth-rule"></span>
       </div>
@@ -42,8 +41,8 @@
       <div class="booth-empty-winners" id="booth-no-winners" hidden>
         <span class="tier-disc" data-tier="9"><img src="assets/tier-07.png" alt=""></span>
         <div>
-          <div class="booth-empty-title">The logo is still up for grabs.</div>
-          <div class="booth-empty-sub">Nobody has merged their way to tier 9 yet. Scan, play, be the first name on this screen.</div>
+          <div class="booth-empty-title">No one has finished building up to SciMed yet.</div>
+          <div class="booth-empty-sub">Scan, play, be the first name on this screen.</div>
         </div>
       </div>
     </div>
@@ -165,7 +164,7 @@
           title.textContent = "New winner";
           title.classList.add("new-winner");
           setTimeout(function () {
-            title.textContent = "Reached the logo";
+            title.textContent = "Winners";
             title.classList.remove("new-winner");
             rows.forEach(function (li) { li.classList.remove("is-new", "moved-up"); });
           }, NEW_WINNER_MS);
