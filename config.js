@@ -81,6 +81,71 @@ const CONFIG = {
   ],
 
   /* ---- debug ------------------------------------------------------------- */
-  // Debug panel (phase 2) activates at ?debug=1. Phase 1 only logs verbosely.
-  debugParam: "debug"
+  // ?debug=1 enables verbose logging and the game debug panel
+  // (spawn any tier, collision wireframes, FPS, force game over / win).
+  debugParam: "debug",
+
+  /* ==== GAME — every tunable value, per design doc section 5 ==============
+     All values are STARTING values with test plans in the design doc.
+     Tuning days 7-9 happens in this block and nowhere else.               */
+  game: {
+    /* container, logical units; canvas scales to fit, no device advantage */
+    container: {
+      width: 380,
+      height: 640,
+      dropZoneBottom: 100,   // drop zone = top 100
+      heldY: 60,             // held item rest position
+      dangerY: 120           // loss line
+    },
+
+    /* physics */
+    physics: {
+      gravityY: 1.0,
+      restitution: 0.1,
+      friction: 0.3,
+      frictionStatic: 0.5,
+      frictionAir: 0.010,
+      density: 0.001         // constant across tiers: bigger = heavier by area
+    },
+
+    /* tier ladder: radius (logical px), product, brand */
+    tiers: [
+      { radius: 18,  name: "Bowie-Dick test pack", brand: "STERIS" },
+      { radius: 24,  name: "Falcon tube",          brand: "Corning" },
+      { radius: 31,  name: "Disinfectant bottle",  brand: "STERIS" },
+      { radius: 41,  name: "Cleanroom mop head",   brand: "Hydroflex" },
+      { radius: 55,  name: "Plate reader",         brand: "Tecan" },
+      { radius: 72,  name: "Fluent workstation",   brand: "Tecan" },
+      { radius: 96,  name: "Bioreactor",           brand: "Infors" },
+      { radius: 127, name: "ULT freezer",          brand: "PHCbi" },
+      { radius: 168, name: "SciMed logo",          brand: "SciMed" }
+    ],
+    // artwork swap path: /assets/tier-01.png .. /assets/tier-09.png
+    tierImagePath: function (i) { return "assets/tier-0" + (i + 1) + ".png"; },
+
+    /* drops */
+    spawnWeights: [40, 30, 20, 10],  // tiers 1-4 only, never 5+
+    dropCooldownMs: 350,
+
+    /* scoring: triangular progression per merge INTO tier (index 1..8) */
+    mergeScores: [0, 3, 6, 10, 15, 21, 28, 36, 45],
+    // cascade bonus: merge score x chain position since last drop, capped
+    cascadeCapX: 5,
+
+    /* win / loss */
+    graceMs: 2000,             // continuous time above danger line to lose
+    stillSpeed: 0.2,           // below this counts as "near-zero velocity"
+    mergesPerStepCap: 10,      // runaway-cascade safety valve
+
+    /* attempts */
+    maxAttempts: 3,
+
+    /* performance */
+    bodyCountCap: 130,         // hard cap; drops locked while at cap
+
+    /* feel */
+    popMs: 180,                // merge scale-pop duration
+    particleCount: 12,         // per merge burst (0 disables)
+    toastMs: 1200              // product-name toast per merge
+  }
 };

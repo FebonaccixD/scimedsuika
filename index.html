@@ -110,15 +110,83 @@
     <p>Your details are saved — you're all set. We have your email as:</p>
     <div class="email-echo" id="confirm-email"></div>
     <p class="muted">If that email is wrong, edit your details and resubmit — your entry updates, no duplicate is created. Otherwise you're done and can close this page.</p>
-    <!-- phase 2: the game offer mounts here as the primary action, clearly skippable -->
+    <!-- game offer: primary action, clearly skippable -->
     <div class="action-area">
+      <button class="btn btn-primary" id="btn-play" type="button">Play the game</button>
       <button class="btn btn-secondary" id="btn-fix-typo" type="button">Edit my details</button>
+      <p class="muted center">Or just close this page — you're done.</p>
     </div>
   </section>
+
+  <!-- Screen 6: game intro. Rules in one line, nobody reads more. -->
+  <section class="screen" id="screen-game-intro" hidden>
+    <h1>Merge to the top</h1>
+    <p>Drop items. Two of the same merge into the next one up. Build the SciMed logo to win.</p>
+    <p class="muted">Tap anywhere in the play area to drop at that spot. Watch the line at the top — pile past it and the run ends.</p>
+    <div class="action-area">
+      <button class="btn btn-primary" id="btn-start-run" type="button">Drop the first one</button>
+    </div>
+  </section>
+
+  <!-- Screen 7: play. Canvas + HUD overlay + live tier ladder at the edge. -->
+  <section class="screen screen-game" id="screen-game" hidden>
+    <div class="hud-top">
+      <div class="hud-block"><span class="hud-label">Score</span><span id="hud-score">0</span></div>
+      <div class="hud-block"><span class="hud-label">Time</span><span id="hud-time">0:00</span></div>
+      <div class="hud-block hud-next"><span class="hud-label">Next</span><img id="hud-next-img" alt="next item"></div>
+    </div>
+    <div id="hud-toast" aria-live="polite"></div>
+    <div id="game-stage">
+      <canvas id="game-canvas"></canvas>
+      <div id="hud-ladder" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- Screens 10+11: game over / win. -->
+  <section class="screen" id="screen-game-end" hidden>
+    <h1 id="end-title"></h1>
+    <p>Score: <strong id="end-score"></strong> &nbsp;·&nbsp; Time: <strong id="end-time"></strong></p>
+    <p>You reached: <strong id="end-tier"></strong></p>
+    <p class="muted" id="end-attempts"></p>
+    <div class="action-area">
+      <button class="btn btn-primary" id="btn-play-again" type="button">Play again</button>
+      <button class="btn btn-secondary" id="btn-finish" type="button">I'm done — show my result</button>
+    </div>
+  </section>
+
+  <!-- Screen 12: post-game ladder, the rep opener. -->
+  <section class="screen" id="screen-postgame" hidden>
+    <h1>Your result</h1>
+    <p>Best score: <strong id="pg-score"></strong></p>
+    <div class="pg-reached">
+      <img id="pg-tier-img" alt="">
+      <div>You reached<br><strong id="pg-tier-name"></strong></div>
+    </div>
+    <h2>The ladder</h2>
+    <ol id="pg-ladder"></ol>
+    <h2>Which of these do you currently use?</h2>
+    <div id="products-list"></div>
+    <button class="btn btn-secondary" id="btn-products-save" type="button">Save my answer</button>
+    <p class="muted" id="products-done" hidden>Saved — thank you.</p>
+    <div class="action-area">
+      <p class="show-team">Show this screen to our team</p>
+    </div>
+  </section>
+
+  <!-- Debug panel, only with ?debug=1 -->
+  <div id="debug-panel" hidden>
+    <strong>debug</strong>
+    <div id="debug-spawns"></div>
+    <button type="button" id="debug-wireframes">bodies</button>
+    <button type="button" id="debug-gameover">force lose</button>
+    <button type="button" id="debug-win">force win</button>
+  </div>
 
 </div>
 
 <script src="config.js"></script>
+<script src="vendor/matter.min.js"></script>
 <script src="app.js"></script>
+<script src="game.js"></script>
 </body>
 </html>

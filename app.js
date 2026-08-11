@@ -67,13 +67,16 @@
   }
 
   /* ---- screens ------------------------------------------------------------ */
-  var screens = ["inapp", "form", "saving", "still-saving", "confirm"];
+  var screens = ["inapp", "form", "saving", "still-saving", "confirm",
+                 "game-intro", "game", "game-end", "postgame"];
   function showScreen(name) {
     screens.forEach(function (s) {
       document.getElementById("screen-" + s).hidden = (s !== name);
     });
     window.scrollTo(0, 0);
   }
+  window.showScreen = showScreen;           // game.js drives its own screens
+  window.getLeadId = function () { return leadId; };  // game results key on it
 
   /* ---- in-app browser detection (screen 16) ------------------------------- */
   function isInAppBrowser() {
